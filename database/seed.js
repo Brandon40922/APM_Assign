@@ -3,101 +3,71 @@ const { db, User, Project, Task } = require('./setup');
 
 async function seedDatabase() {
     try {
-        // Force sync to reset database
         await db.sync({ force: true });
-        console.log('Database reset successfully.');
 
-        // Create sample users
         const hashedPassword = await bcrypt.hash('password123', 10);
-        
-        const users = await User.bulkCreate([
-            {
-                name: 'John Employee',
-                email: 'john@company.com',
-                password: hashedPassword
-                // TODO: Add role: 'employee'
 
+        // Create users
+        const john = await User.create({
+            name: 'John Employee',
+            email: 'john@company.com',
+            password: hashedPassword,
+            role: 'employee'
+        });
 
-            },
-            {
-                name: 'Sarah Manager',
-                email: 'sarah@company.com',
-                password: hashedPassword
-                // TODO: Add role: 'manager'
+        const sarah = await User.create({
+            name: 'Sarah Manager',
+            email: 'sarah@company.com',
+            password: hashedPassword,
+            role: 'manager'
+        });
 
+        const mike = await User.create({
+            name: 'Mike Admin',
+            email: 'mike@company.com',
+            password: hashedPassword,
+            role: 'admin'
+        });
 
-            },
-            {
-                name: 'Mike Admin',
-                email: 'mike@company.com',
-                password: hashedPassword
-                // TODO: Add role: 'admin'
+        // Create projects
+        const project1 = await Project.create({
+            name: 'Website Redesign',
+            description: 'Update company website with new branding',
+            status: 'active',
+            managerId: sarah.id
+        });
 
-                
-            }
-        ]);
+        const project2 = await Project.create({
+            name: 'Mobile App Launch',
+            description: 'Prepare mobile app for public release',
+            status: 'active',
+            managerId: mike.id
+        });
 
-        // Create sample projects
-        const projects = await Project.bulkCreate([
-            {
-                name: 'Website Redesign',
-                description: 'Complete overhaul of company website',
-                managerId: users[1].id, // Sarah Manager
-                status: 'active'
-            },
-            {
-                name: 'Mobile App Development',
-                description: 'New mobile app for customers',
-                managerId: users[1].id, // Sarah Manager
-                status: 'active'
-            },
-            {
-                name: 'Database Migration',
-                description: 'Migrate legacy database to new system',
-                managerId: users[2].id, // Mike Admin
-                status: 'planning'
-            }
-        ]);
+        // Create tasks
+        await Task.create({
+            title: 'Design homepage mockup',
+            description: 'Create homepage wireframe and mockup',
+            status: 'pending',
+            priority: 'high',
+            projectId: project1.id,
+            assignedUserId: john.id
+        });
 
-        // Create sample tasks
-        await Task.bulkCreate([
-            {
-                title: 'Design homepage mockup',
-                description: 'Create wireframes and mockups for new homepage',
-                projectId: projects[0].id,
-                assignedUserId: users[0].id, // John Employee
-                status: 'in-progress',
-                priority: 'high'
-            },
-            {
-                title: 'Set up development environment',
-                description: 'Configure local development setup',
-                projectId: projects[1].id,
-                assignedUserId: users[0].id, // John Employee
-                status: 'completed',
-                priority: 'medium'
-            },
-            {
-                title: 'Review database schema',
-                description: 'Analyze current database structure',
-                projectId: projects[2].id,
-                assignedUserId: users[1].id, // Sarah Manager
-                status: 'pending',
-                priority: 'high'
-            }
-        ]);
+        await Task.create({
+            title: 'Test login flow',
+            description: 'Run QA on user authentication flow',
+            status: 'in progress',
+            priority: 'medium',
+            projectId: project2.id,
+            assignedUserId: john.id
+        });
 
-        console.log('Database seeded successfully!');
-        console.log('Sample users created:');
-        console.log('- john@company.com (Employee)');
-        console.log('- sarah@company.com (Manager)');
-        console.log('- mike@company.com (Admin)');
-        console.log('All passwords: password123');
-        
+        console.log('Database seeded successfully.');
+        process.exit(0);
     } catch (error) {
         console.error('Error seeding database:', error);
-    } finally {
-        await db.close();
+        process.exit(1);
     }
 }
 
